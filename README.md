@@ -1,1 +1,2 @@
-<img src="rmnLogo.jpg" alt="RMN Logo"/>
+<img src="rmnLogo.png" alt="RMN Logo"/>
+# Radio Mariam Nazareth - Slideshow
