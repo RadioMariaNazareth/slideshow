@@ -98,11 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.addEventListener('error', ()=>{isPlaying=false;playerStatus.textContent="Stream interrupted.";updateIcon();});
     if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 
-    // IMAGE SLIDESHOW (no array)
+    // IMAGE SLIDESHOW
     let currentIndex = 1;
     const totalImages = 349;
     const imageElement = document.getElementById('current-image');
     const folderPath = 'images/';
+    const fallbackImage = 'logo.png'; // 👈 Fallback logo
 
     function showNextImage() {
         imageElement.src = `${folderPath}${currentIndex}.jpg`;
@@ -110,10 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
         currentIndex = currentIndex >= totalImages ? 1 : currentIndex + 1;
     }
 
+    // 👇 When image fails, replace it with logo
+    imageElement.onerror = function() {
+        imageElement.src = fallbackImage;
+    };
+
     showNextImage();
     setInterval(showNextImage, 3000);
 });
 </script>
+
 
 
 </body>
