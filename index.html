@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const audio = new Audio(audioUrl);
     audio.crossOrigin = "anonymous";
     audio.preload = "none";
+
     const playPauseBtn = document.getElementById('play-pause-btn');
     const playerStatus = document.getElementById('player-status');
     let isPlaying = false;
@@ -84,34 +85,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateIcon = () => {
         const iconName = isPlaying ? 'pause' : 'play';
         playPauseBtn.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 fill-white text-white"></i>`;
-        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons({ scope: playPauseBtn });
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons({ scope: playPauseBtn });
+        }
     };
 
     const togglePlay = () => {
-        if (!isPlaying) audio.play().catch(()=>playerStatus.textContent="Click to Play");
-        else audio.pause();
+        if (!isPlaying) {
+            audio.play().catch(() => playerStatus.textContent = "Click to Play");
+        } else {
+            audio.pause();
+        }
     };
 
     playPauseBtn.addEventListener('click', togglePlay);
-    audio.addEventListener('play', ()=>{isPlaying=true;playerStatus.textContent="LIVE Stream";updateIcon();});
-    audio.addEventListener('pause', ()=>{isPlaying=false;playerStatus.textContent="Live";updateIcon();});
-    audio.addEventListener('error', ()=>{isPlaying=false;playerStatus.textContent="Stream interrupted.";updateIcon();});
-    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    audio.addEventListener('play', () => {
+        isPlaying = true;
+        playerStatus.textContent = "LIVE Stream";
+        updateIcon();
+    });
+    audio.addEventListener('pause', () => {
+        isPlaying = false;
+        playerStatus.textContent = "Live";
+        updateIcon();
+    });
+    audio.addEventListener('error', () => {
+        isPlaying = false;
+        playerStatus.textContent = "Stream interrupted.";
+        updateIcon();
+    });
 
-    // IMAGE SLIDESHOW
-    let currentIndex = 1;
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+
+    // IMAGE SLIDESHOW (RANDOM SHUFFLE)
     const totalImages = 353;
     const imageElement = document.getElementById('current-image');
     const folderPath = 'images/';
-    const fallbackImage = 'logo.png'; // 👈 Fallback logo
+    const fallbackImage = 'logo.png';
+
+    // Create array [1..353]
+    let images = Array.from({ length: totalImages }, (_, i) => i + 1);
+
+    // Shuffle function
+    images.sort(() => Math.random() - 0.5);
+
+    let currentIndex = 0;
 
     function showNextImage() {
-        imageElement.src = `${folderPath}${currentIndex}.jpg`;
-        imageElement.alt = `Slideshow Image ${currentIndex} of ${totalImages}`;
-        currentIndex = currentIndex >= totalImages ? 1 : currentIndex + 1;
+        imageElement.src = `${folderPath}${images[currentIndex]}.jpg`;
+        imageElement.alt = `Slideshow Image ${images[currentIndex]} of ${totalImages}`;
+
+        currentIndex++;
+
+        // Restart shuffled cycle
+        if (currentIndex >= images.length) {
+            images.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+        }
     }
 
-    // 👇 When image fails, replace it with logo
     imageElement.onerror = function() {
         imageElement.src = fallbackImage;
     };
@@ -120,8 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(showNextImage, 3000);
 });
 </script>
-
-
 
 </body>
 </html>
