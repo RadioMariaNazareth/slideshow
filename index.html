@@ -1,158 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Maria Nazareth - Images</title>
-    <link rel="shortcut icon" href="logo.png" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            color: white;
-        }
-        .glass-card {
-            background-color: rgba(255,255,255,0.08);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
-        }
-        @keyframes subtle-zoom {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
-        }
-        .showcase-image {
-            transition: opacity 1s ease-in-out, transform 8s ease-in-out;
-            will-change: opacity, transform;
-            animation: subtle-zoom 8s alternate infinite;
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 5;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background-color: #3b82f6; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Maria Nazareth - Images</title>
+
+<!-- Base CSS -->
+<link rel="stylesheet" href="CSS/style.css">
+<link rel="stylesheet" href="CSS/style.css" id="theme-style">
+
+<link rel="shortcut icon" href="logo.png" type="image/x-icon">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+/* Falling emojis */
+#effects-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.falling-emoji {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    animation-name: fall;
+    animation-timing-function: linear;
+}
+
+@keyframes fall {
+    0%   { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+</style>
 </head>
 <body>
+
+<div id="effects-layer"></div>
 
 <div id="main-content-area" class="flex-grow p-4 md:p-10 relative overflow-hidden">
     <div id="image-overlay" class="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent z-20 pointer-events-none"></div>
     <img id="current-image" class="showcase-image" alt="Slideshow Image">
-    <div class="absolute top-4 left-4 z-40 p-2 rounded-xl glass-card">
-        <img src="logo.png" alt="Radio Maria Logo" class="w-16 h-16 object-contain rounded-lg">
+
+    <div class="absolute top-4 left-4 z-40 p-2 rounded-xl logo-card">
+        <img src="logo.png" class="w-16 h-16 object-contain rounded-lg">
     </div>
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-        <div class="px-4 py-2 flex items-center space-x-3 rounded-full glass-card">
-            <button id="play-pause-btn" class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                <i data-lucide="play" class="w-5 h-5 fill-white text-white"></i>
+
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div class="px-4 py-2 flex items-center space-x-3 rounded-full player-card">
+            <button id="play-pause-btn" class="player-button">
+                <i data-lucide="play"></i>
             </button>
             <div class="flex flex-col text-left">
-                <span class="text-sm font-bold tracking-wide text-blue-200 whitespace-nowrap">
-                    Radio Maria Nazareth
-                </span>
-                <span id="player-status" class="text-xs font-medium text-gray-400">
-                    Connecting...
-                </span>
+                <span class="text-sm font-bold tracking-wide player-title">Radio Maria Nazareth</span>
+                <span id="player-status" class="text-xs opacity-70">Connecting...</span>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // AUDIO
-    const audioUrl = 'https://live.ecast.co.il/stream/maria';
-    const audio = new Audio(audioUrl);
-    audio.crossOrigin = "anonymous";
-    audio.preload = "none";
+// ======= THEME DETECTION =======
+const themeLink = document.getElementById("theme-style");
+const effectsLayer = document.getElementById("effects-layer");
+const today = new Date();
+let month = today.getMonth() + 1;
+const day = today.getDate();
 
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const playerStatus = document.getElementById('player-status');
-    let isPlaying = false;
+let currentTheme = "default";
 
-    const updateIcon = () => {
-        const iconName = isPlaying ? 'pause' : 'play';
-        playPauseBtn.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 fill-white text-white"></i>`;
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons({ scope: playPauseBtn });
-        }
-    };
+if ((month === 12 && day >= 1) || (month === 1 && day <= 10)) {
+    themeLink.href = "CSS/christmas.css";
+    currentTheme = "christmas";
+} else if ((month === 3 && day >= 15) || (month === 4 && day <= 20)) {
+    themeLink.href = "CSS/easter.css";
+    currentTheme = "easter";
+} else {
+    themeLink.href = "CSS/style.css";
+    currentTheme = "default";
+}
 
-    const togglePlay = () => {
-        if (!isPlaying) {
-            audio.play().catch(() => playerStatus.textContent = "Click to Play");
-        } else {
-            audio.pause();
-        }
-    };
+// ======= EMOJI FALLING SETUP =======
+const themeEmojis = {
+    christmas: ["🙏","🕊️","✝️","🎄","🎁","❄️","⛄","🎅","⭐","👼"],
+    easter: ["🐣","🐥","🐇","🐰","🙏","🕊️","✝️"],
+    default: []
+};
 
-    playPauseBtn.addEventListener('click', togglePlay);
-    audio.addEventListener('play', () => {
-        isPlaying = true;
-        playerStatus.textContent = "LIVE Stream";
-        updateIcon();
-    });
-    audio.addEventListener('pause', () => {
-        isPlaying = false;
-        playerStatus.textContent = "Live";
-        updateIcon();
-    });
-    audio.addEventListener('error', () => {
-        isPlaying = false;
-        playerStatus.textContent = "Stream interrupted.";
-        updateIcon();
-    });
+function createFallingEmoji() {
+    const emojis = themeEmojis[currentTheme];
+    if (!emojis.length) return; // no emojis for default
 
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
+    const emoji = document.createElement("div");
+    emoji.className = "falling-emoji";
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    // Random horizontal position
+    emoji.style.left = Math.random() * 100 + "vw";
+    // Random size
+    emoji.style.fontSize = 20 + Math.random() * 25 + "px";
+    // Random speed
+    emoji.style.animationDuration = 5 + Math.random() * 8 + "s";
+    // Random delay
+    emoji.style.animationDelay = Math.random() * 5 + "s";
 
-    // IMAGE SLIDESHOW (RANDOM SHUFFLE)
-    const totalImages = 357;
-    const imageElement = document.getElementById('current-image');
-    const folderPath = 'images/';
-    const fallbackImage = 'logo.png';
+    effectsLayer.appendChild(emoji);
 
-    // Create array [1..353]
-    let images = Array.from({ length: totalImages }, (_, i) => i + 1);
+    emoji.addEventListener("animationend", () => emoji.remove());
+}
 
-    // Shuffle function
-    images.sort(() => Math.random() - 0.5);
+// Generate emoji every 400ms
+setInterval(createFallingEmoji, 400);
 
-    let currentIndex = 0;
+// ======= AUDIO PLAYER =======
+const audio = new Audio("https://live.ecast.co.il/stream/maria");
+audio.preload = "none";
+let playing = false;
 
-    function showNextImage() {
-        imageElement.src = `${folderPath}${images[currentIndex]}.jpg`;
-        imageElement.alt = `Slideshow Image ${images[currentIndex]} of ${totalImages}`;
+const btn = document.getElementById("play-pause-btn");
+const status = document.getElementById("player-status");
 
-        currentIndex++;
+btn.onclick = () => { playing ? audio.pause() : audio.play(); }
 
-        // Restart shuffled cycle
-        if (currentIndex >= images.length) {
-            images.sort(() => Math.random() - 0.5);
-            currentIndex = 0;
-        }
-    }
+audio.onplay = () => { playing = true; status.textContent = "LIVE Stream"; updateButton(); }
+audio.onpause = () => { playing = false; status.textContent = "Paused"; updateButton(); }
+audio.onerror = () => { status.textContent = "Stream Error"; updateButton(); }
 
-    imageElement.onerror = function() {
-        imageElement.src = fallbackImage;
-    };
+function updateButton() {
+    btn.innerHTML = `<i data-lucide="${playing ? "pause" : "play"}"></i>`;
+    lucide.createIcons();
+}
 
-    showNextImage();
-    setInterval(showNextImage, 3000);
-});
+// ======= SLIDESHOW =======
+let total = 357, index = 0;
+let arr = Array.from({length: total}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+const img = document.getElementById("current-image");
+
+function nextImage() {
+    img.src = `images/${arr[index]}.jpg`;
+    index = (index + 1) % total;
+    if (index === 0) arr.sort(() => Math.random() - 0.5);
+}
+
+img.onerror = () => img.src = "logo.png";
+nextImage();
+setInterval(nextImage, 3000);
+
+lucide.createIcons();
 </script>
 
 </body>
